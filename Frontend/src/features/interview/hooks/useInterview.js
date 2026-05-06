@@ -21,9 +21,43 @@ export const useInterview = () => {
   const { loading, setLoading, report, setReport, reports, setReports } =
     context;
 
+  // =========================================
+  // HANDLE API ERRORS
+  // =========================================
+
+  const getErrorMessage = (error) => {
+    console.log(error);
+
+    // Gemini API overload / quota
+    if (
+      error?.response?.status === 503 ||
+      error?.response?.data?.error?.status === "UNAVAILABLE"
+    ) {
+      return "AI servers are currently busy due to high demand. Please try again in a few minutes.";
+    }
+
+    // Too many requests
+    if (error?.response?.status === 429) {
+      return "AI usage limit reached. Please try again later.";
+    }
+
+    // Server error
+    if (error?.response?.status >= 500) {
+      return "Server error occurred. Please try again later.";
+    }
+
+    // Default
+    return (
+      error?.response?.data?.message ||
+      error?.message ||
+      "Something went wrong."
+    );
+  };
+
   // =========================
   // Generate Interview Report
   // =========================
+
   const generateReport = async ({
     jobDescription,
     selfDescription,
@@ -31,71 +65,89 @@ export const useInterview = () => {
   }) => {
     setLoading(true);
 
-    let response = null;
-
     try {
-      response = await generateInterviewReport({
+      const response = await generateInterviewReport({
         jobDescription,
         selfDescription,
         resumeFile,
       });
 
       setReport(response.interviewReport);
+
+      return {
+        success: true,
+        data: response.interviewReport,
+      };
     } catch (error) {
-      console.log(error);
+      return {
+        success: false,
+        message: getErrorMessage(error),
+      };
     } finally {
       setLoading(false);
     }
-
-    return response?.interviewReport;
   };
 
   // =========================
   // Get Report By ID
   // =========================
+
   const getReportById = async (interviewId) => {
     setLoading(true);
 
-    let response = null;
-
     try {
-      response = await getInterviewReportById(interviewId);
+      const response = await getInterviewReportById(interviewId);
 
       setReport(response.interviewReport);
+
+      return {
+        success: true,
+        data: response.interviewReport,
+      };
     } catch (error) {
-      console.log(error);
+      return {
+        success: false,
+        message: getErrorMessage(error),
+      };
     } finally {
       setLoading(false);
     }
-
-    return response?.interviewReport;
   };
 
   // =========================
   // Get All Reports
   // =========================
+
   const getReports = async () => {
     setLoading(true);
 
-    let response = null;
-
     try {
-      response = await getAllInterviewReports();
+      const response = await getAllInterviewReports();
 
       setReports(response.interviewReports);
+
+      return {
+        success: true,
+        data: response.interviewReports,
+      };
     } catch (error) {
-      console.log(error);
+      return {
+        success: false,
+        message: getErrorMessage(error),
+      };
     } finally {
       setLoading(false);
     }
-
-    return response?.interviewReports;
   };
 
   // =========================
   // Download Resume PDF
   // =========================
-  const getResumePdf = async (interviewReportId, templateId = 1) => {
+
+  const getResumePdf = async (
+    interviewReportId,
+    templateId = 1,
+  ) => {
     setLoading(true);
 
     try {
@@ -124,8 +176,15 @@ export const useInterview = () => {
       link.click();
 
       link.remove();
+
+      return {
+        success: true,
+      };
     } catch (error) {
-      console.log(error);
+      return {
+        success: false,
+        message: getErrorMessage(error),
+      };
     } finally {
       setLoading(false);
     }
@@ -134,7 +193,11 @@ export const useInterview = () => {
   // =========================
   // Download Resume LaTeX
   // =========================
-  const getResumeLatex = async (interviewReportId, templateId = 1) => {
+
+  const getResumeLatex = async (
+    interviewReportId,
+    templateId = 1,
+  ) => {
     setLoading(true);
 
     try {
@@ -142,8 +205,15 @@ export const useInterview = () => {
         interviewReportId,
         templateId,
       });
+
+      return {
+        success: true,
+      };
     } catch (error) {
-      console.log(error);
+      return {
+        success: false,
+        message: getErrorMessage(error),
+      };
     } finally {
       setLoading(false);
     }
@@ -152,6 +222,7 @@ export const useInterview = () => {
   // =========================
   // Auto Fetch
   // =========================
+
   useEffect(() => {
     if (interviewId) {
       getReportById(interviewId);

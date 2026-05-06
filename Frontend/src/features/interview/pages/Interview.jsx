@@ -211,35 +211,27 @@ const TemplatePicker = ({ selectedId, onSelect }) => {
         onClick={() => setOpen((o) => !o)}
         title="Choose LaTeX template"
       >
-        <span className="template-picker__label">
-          {selected.name}
-        </span>
+        <span className="template-picker__label">{selected.name}</span>
 
         <ChevronIcon open={open} />
       </button>
 
       {open && (
         <div className="template-picker__dropdown">
-          <p className="template-picker__hint">
-            Choose a LaTeX template
-          </p>
+          <p className="template-picker__hint">Choose a LaTeX template</p>
 
           {TEMPLATES.map((t) => (
             <button
               key={t.id}
               className={`template-picker__option ${
-                t.id === selectedId
-                  ? "template-picker__option--active"
-                  : ""
+                t.id === selectedId ? "template-picker__option--active" : ""
               }`}
               onClick={() => {
                 onSelect(t.id);
                 setOpen(false);
               }}
             >
-              <span className="template-picker__option-num">
-                {t.id}
-              </span>
+              <span className="template-picker__option-num">{t.id}</span>
 
               <span>
                 <strong>{t.name}</strong>
@@ -264,13 +256,8 @@ const Interview = () => {
 
   const [toast, setToast] = useState(null);
 
-  const {
-    report,
-    getReportById,
-    loading,
-    getResumePdf,
-    getResumeLatex,
-  } = useInterview();
+  const { report, getReportById, loading, getResumePdf, getResumeLatex } =
+    useInterview();
 
   const { interviewId } = useParams();
 
@@ -294,8 +281,8 @@ const Interview = () => {
     report.matchScore >= 80
       ? "score--high"
       : report.matchScore >= 60
-      ? "score--mid"
-      : "score--low";
+        ? "score--mid"
+        : "score--low";
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -312,8 +299,8 @@ const Interview = () => {
       await getResumePdf(interviewId, selectedTemplate);
 
       showToast("success", "Resume PDF downloaded!");
-    } catch {
-      showToast("error", "Failed to download PDF.");
+    } catch (error) {
+      showToast("error", error?.message || "Failed to download PDF.");
     } finally {
       setDownloadingPdf(false);
     }
@@ -327,10 +314,10 @@ const Interview = () => {
 
       showToast(
         "success",
-        `LaTeX file downloaded! (Template ${selectedTemplate})`
+        `LaTeX file downloaded! (Template ${selectedTemplate})`,
       );
-    } catch {
-      showToast("error", "Failed to download LaTeX file.");
+    } catch (error) {
+      showToast("error", error?.message || "Failed to download LaTeX file.");
     } finally {
       setDownloadingLatex(false);
     }
@@ -338,12 +325,8 @@ const Interview = () => {
 
   return (
     <div className="interview-page">
-
       {/* BACK BUTTON */}
-      <button
-        className="back-button"
-        onClick={() => navigate("/")}
-      >
+      <button className="back-button" onClick={() => navigate("/")}>
         ← Back to Home
       </button>
 
@@ -356,15 +339,11 @@ const Interview = () => {
               <button
                 key={item.id}
                 className={`interview-nav__item ${
-                  activeNav === item.id
-                    ? "interview-nav__item--active"
-                    : ""
+                  activeNav === item.id ? "interview-nav__item--active" : ""
                 }`}
                 onClick={() => setActiveNav(item.id)}
               >
-                <span className="interview-nav__icon">
-                  {item.icon}
-                </span>
+                <span className="interview-nav__icon">{item.icon}</span>
 
                 {item.label}
               </button>
@@ -425,18 +404,12 @@ const Interview = () => {
               <div className="content-header">
                 <h2>Technical Questions</h2>
 
-                <span>
-                  {report.technicalQuestions.length} questions
-                </span>
+                <span>{report.technicalQuestions.length} questions</span>
               </div>
 
               <div className="q-list">
                 {report.technicalQuestions.map((q, i) => (
-                  <QuestionCard
-                    key={i}
-                    item={q}
-                    index={i}
-                  />
+                  <QuestionCard key={i} item={q} index={i} />
                 ))}
               </div>
             </section>
@@ -447,18 +420,12 @@ const Interview = () => {
               <div className="content-header">
                 <h2>Behavioral Questions</h2>
 
-                <span>
-                  {report.behavioralQuestions.length} questions
-                </span>
+                <span>{report.behavioralQuestions.length} questions</span>
               </div>
 
               <div className="q-list">
                 {report.behavioralQuestions.map((q, i) => (
-                  <QuestionCard
-                    key={i}
-                    item={q}
-                    index={i}
-                  />
+                  <QuestionCard key={i} item={q} index={i} />
                 ))}
               </div>
             </section>
@@ -469,17 +436,12 @@ const Interview = () => {
               <div className="content-header">
                 <h2>Preparation Road Map</h2>
 
-                <span>
-                  {report.preparationPlan.length}-day plan
-                </span>
+                <span>{report.preparationPlan.length}-day plan</span>
               </div>
 
               <div className="roadmap-list">
                 {report.preparationPlan.map((day) => (
-                  <RoadMapDay
-                    key={day.day}
-                    day={day}
-                  />
+                  <RoadMapDay key={day.day} day={day} />
                 ))}
               </div>
             </section>
@@ -501,10 +463,7 @@ const Interview = () => {
             <p>Skill Gaps</p>
 
             {report.skillGaps.map((gap, i) => (
-              <span
-                key={i}
-                className={`skill-tag skill-tag--${gap.severity}`}
-              >
+              <span key={i} className={`skill-tag skill-tag--${gap.severity}`}>
                 {gap.skill}
               </span>
             ))}
@@ -513,9 +472,7 @@ const Interview = () => {
       </div>
 
       {toast && (
-        <div className={`toast toast--${toast.type}`}>
-          {toast.message}
-        </div>
+        <div className={`toast toast--${toast.type}`}>{toast.message}</div>
       )}
     </div>
   );

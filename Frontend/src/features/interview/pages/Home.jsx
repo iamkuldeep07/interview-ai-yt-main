@@ -1,13 +1,8 @@
 // Home.jsx
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 import "../style/home.scss";
-
 
 import { useInterview } from "../hooks/useInterview.js";
 
@@ -17,17 +12,13 @@ import Navbar from "../../../components/Navbar.jsx";
 import { getMe, logout } from "../../auth/services/auth.api.js";
 
 const Home = () => {
-  const { loading, generateReport, reports } =
-    useInterview();
+  const { loading, generateReport, reports } = useInterview();
 
-  const [jobDescription, setJobDescription] =
-    useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
-  const [selfDescription, setSelfDescription] =
-    useState("");
+  const [selfDescription, setSelfDescription] = useState("");
 
-  const [resumeName, setResumeName] =
-    useState("");
+  const [resumeName, setResumeName] = useState("");
 
   const [user, setUser] = useState(null);
 
@@ -44,7 +35,6 @@ const Home = () => {
       try {
         const data = await getMe();
         setUser(data.user);
-
       } catch (err) {
         console.log(err);
       }
@@ -72,16 +62,22 @@ const Home = () => {
   // ======================================================
 
   const handleGenerateReport = async () => {
-    const resumeFile =
-      resumeInputRef.current.files[0];
+    const resumeFile = resumeInputRef.current.files[0];
 
-    const data = await generateReport({
+    const result = await generateReport({
       jobDescription,
       selfDescription,
       resumeFile,
     });
 
-    navigate(`/interview/${data._id}`);
+    // If API failed
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+
+    // If successful
+    navigate(`/interview/${result.data._id}`);
   };
 
   // ======================================================
@@ -101,8 +97,7 @@ const Home = () => {
   // ======================================================
 
   const isFormValid =
-    jobDescription.trim() &&
-    (resumeName || selfDescription.trim());
+    jobDescription.trim() && (resumeName || selfDescription.trim());
 
   // ======================================================
   // LOADING
@@ -111,9 +106,7 @@ const Home = () => {
   if (loading) {
     return (
       <main className="loading-screen">
-        <h1>
-          Loading your interview plan...
-        </h1>
+        <h1>Loading your interview plan...</h1>
       </main>
     );
   }
@@ -126,10 +119,7 @@ const Home = () => {
     <>
       {/* NAVBAR */}
 
-      <Navbar
-        user={user}
-        onLogout={handleLogout}
-      />
+      <Navbar user={user} onLogout={handleLogout} />
 
       {/* PAGE */}
 
@@ -138,17 +128,12 @@ const Home = () => {
 
         <header className="page-header">
           <h1>
-            Create Your Custom{" "}
-            <span className="highlight">
-              Interview Plan
-            </span>
+            Create Your Custom <span className="highlight">Interview Plan</span>
           </h1>
 
           <p>
-            Let our AI analyze the job
-            requirements and your unique
-            profile to build a winning
-            strategy.
+            Let our AI analyze the job requirements and your unique profile to
+            build a winning strategy.
           </p>
         </header>
 
@@ -172,33 +157,20 @@ const Home = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <rect
-                      x="2"
-                      y="7"
-                      width="20"
-                      height="14"
-                      rx="2"
-                      ry="2"
-                    />
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
 
                     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                   </svg>
                 </span>
 
-                <h2>
-                  Target Job Description
-                </h2>
+                <h2>Target Job Description</h2>
 
-                <span className="badge badge--required">
-                  Required
-                </span>
+                <span className="badge badge--required">Required</span>
               </div>
 
               <textarea
                 onChange={(e) => {
-                  setJobDescription(
-                    e.target.value
-                  );
+                  setJobDescription(e.target.value);
                 }}
                 className="panel__textarea"
                 placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
@@ -206,8 +178,7 @@ const Home = () => {
               />
 
               <div className="char-counter">
-                {jobDescription.length} /
-                5000 chars
+                {jobDescription.length} / 5000 chars
               </div>
             </div>
 
@@ -233,11 +204,7 @@ const Home = () => {
                   >
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
 
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                    />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
                 </span>
 
@@ -249,16 +216,10 @@ const Home = () => {
               <div className="upload-section">
                 <label className="section-label">
                   Upload Resume
-
-                  <span className="badge badge--best">
-                    Best Results
-                  </span>
+                  <span className="badge badge--best">Best Results</span>
                 </label>
 
-                <label
-                  className="dropzone"
-                  htmlFor="resume"
-                >
+                <label className="dropzone" htmlFor="resume">
                   <span className="dropzone__icon">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -273,12 +234,7 @@ const Home = () => {
                     >
                       <polyline points="16 16 12 12 8 16" />
 
-                      <line
-                        x1="12"
-                        y1="12"
-                        x2="12"
-                        y2="21"
-                      />
+                      <line x1="12" y1="12" x2="12" y2="21" />
 
                       <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
                     </svg>
@@ -290,9 +246,7 @@ const Home = () => {
                       : "Click to upload or drag & drop"}
                   </p>
 
-                  <p className="dropzone__subtitle">
-                    PDF or DOCX (Max 5MB)
-                  </p>
+                  <p className="dropzone__subtitle">PDF or DOCX (Max 5MB)</p>
 
                   <input
                     ref={resumeInputRef}
@@ -315,18 +269,13 @@ const Home = () => {
               {/* SELF DESCRIPTION */}
 
               <div className="self-description">
-                <label
-                  className="section-label"
-                  htmlFor="selfDescription"
-                >
+                <label className="section-label" htmlFor="selfDescription">
                   Quick Self-Description
                 </label>
 
                 <textarea
                   onChange={(e) => {
-                    setSelfDescription(
-                      e.target.value
-                    );
+                    setSelfDescription(e.target.value);
                   }}
                   id="selfDescription"
                   name="selfDescription"
@@ -346,11 +295,7 @@ const Home = () => {
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                    />
+                    <circle cx="12" cy="12" r="10" />
 
                     <line
                       x1="12"
@@ -373,13 +318,9 @@ const Home = () => {
                 </span>
 
                 <p>
-                  Either a{" "}
-                  <strong>Resume</strong> or a{" "}
-                  <strong>
-                    Self Description
-                  </strong>{" "}
-                  is required to generate
-                  a personalized plan.
+                  Either a <strong>Resume</strong> or a{" "}
+                  <strong>Self Description</strong> is required to generate a
+                  personalized plan.
                 </p>
               </div>
             </div>
@@ -389,24 +330,17 @@ const Home = () => {
 
           <div className="interview-card__footer">
             <span className="footer-info">
-              AI-Powered Strategy
-              Generation • Approx 30s
+              AI-Powered Strategy Generation • Approx 30s
             </span>
 
             <button
-              onClick={
-                handleGenerateReport
-              }
+              onClick={handleGenerateReport}
               disabled={!isFormValid}
               className="generate-btn"
               style={{
-                opacity: isFormValid
-                  ? 1
-                  : 0.5,
+                opacity: isFormValid ? 1 : 0.5,
 
-                cursor: isFormValid
-                  ? "pointer"
-                  : "not-allowed",
+                cursor: isFormValid ? "pointer" : "not-allowed",
               }}
             >
               <svg
@@ -418,9 +352,7 @@ const Home = () => {
               >
                 <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
               </svg>
-
-              Generate My Interview
-              Strategy
+              Generate My Interview Strategy
             </button>
           </div>
         </div>
@@ -429,45 +361,34 @@ const Home = () => {
 
         {reports.length > 0 && (
           <section className="recent-reports">
-            <h2>
-              My Recent Interview Plans
-            </h2>
+            <h2>My Recent Interview Plans</h2>
 
             <ul className="reports-list">
               {reports.map((report) => (
                 <li
                   key={report._id}
                   className="report-item"
-                  onClick={() =>
-                    navigate(
-                      `/interview/${report._id}`
-                    )
-                  }
+                  onClick={() => navigate(`/interview/${report._id}`)}
                 >
                   <h3 title={report.title}>
-                    {report.title ||
-                      "Untitled Position"}
+                    {report.title || "Untitled Position"}
                   </h3>
 
                   <p className="report-meta">
                     Generated on{" "}
-                    {new Date(
-                      report.createdAt
-                    ).toLocaleDateString()}
+                    {new Date(report.createdAt).toLocaleDateString()}
                   </p>
 
                   <p
                     className={`match-score ${
                       report.matchScore >= 80
                         ? "score--high"
-                        : report.matchScore >=
-                            60
+                        : report.matchScore >= 60
                           ? "score--mid"
                           : "score--low"
                     }`}
                   >
-                    Match Score:{" "}
-                    {report.matchScore}%
+                    Match Score: {report.matchScore}%
                   </p>
                 </li>
               ))}
@@ -478,17 +399,11 @@ const Home = () => {
         {/* FOOTER */}
 
         <footer className="page-footer">
-          <a href="#">
-            Privacy Policy
-          </a>
+          <a href="#">Privacy Policy</a>
 
-          <a href="#">
-            Terms of Service
-          </a>
+          <a href="#">Terms of Service</a>
 
-          <a href="#">
-            Help Center
-          </a>
+          <a href="#">Help Center</a>
         </footer>
       </div>
     </>
