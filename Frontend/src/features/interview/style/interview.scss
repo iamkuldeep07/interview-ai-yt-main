@@ -54,6 +54,65 @@ $severity-low: #3fb950;
     flex-shrink: 0;
 }
 
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+
+  min-width: 280px;
+  max-width: 400px;
+
+  padding: 14px 18px;
+
+  border-radius: 14px;
+
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+
+  backdrop-filter: blur(14px);
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.18);
+
+  z-index: 9999;
+
+  animation:
+    toastSlide 0.3s ease,
+    toastFade 0.3s ease 2.7s forwards;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast--success {
+  background: rgba(34, 197, 94, 0.92);
+}
+
+.toast--error {
+  background: rgba(239, 68, 68, 0.92);
+}
+
+@keyframes toastSlide {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toastFade {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 // ── Left Nav ─────────────────────────────────────────────────────────────────
 .interview-nav {
     width: 220px;

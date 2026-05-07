@@ -59,12 +59,33 @@ export const generateResumePdf = async ({
       params: {
         template: templateId,
       },
-
       responseType: "blob",
     },
   );
 
-  return response.data;
+  // Create blob URL
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], {
+      type: "application/pdf",
+    }),
+  );
+
+  // Create temp anchor
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download = `resume_${interviewReportId}.pdf`;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
+
+  return true;
 };
 
 /**
