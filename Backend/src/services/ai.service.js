@@ -260,14 +260,6 @@ ${data.certifications.map((c) => `\\item ${escapeLatex(c)}`).join("\n")}
 }
 
 // ======================================================
-// PDF GENERATION
-// ======================================================
-
-
-async function generateResumePdf({ resume, selfDescription, jobDescription }) {
-}
-
-// ======================================================
 // INTERVIEW REPORT
 // ======================================================
 
@@ -359,6 +351,30 @@ ${jobDescription}
   const pdfBuffer = await generatePdfFromHtml(jsonContent.html);
 
   return pdfBuffer;
+}
+
+// ======================================================
+// PDF FROM HTML (Puppeteer)
+// ======================================================
+
+async function generatePdfFromHtml(html) {
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
+    });
+    return pdfBuffer;
+  } finally {
+    await browser.close();
+  }
 }
 
 // ======================================================
