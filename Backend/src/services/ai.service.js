@@ -3,7 +3,8 @@
 const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
 const { TEMPLATES } = require("./resumeLatexTemplates");
 
@@ -357,10 +358,14 @@ ${jobDescription}
 // PDF FROM HTML (Puppeteer)
 // ======================================================
 
+
+
 async function generatePdfFromHtml(html) {
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
 
   try {
