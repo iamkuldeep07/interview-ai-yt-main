@@ -133,10 +133,6 @@ function escapeLatex(str = "") {
     .replace(/\}/g, "\\}");
 }
 
-// ======================================================
-// Remove Duplicate Skills
-// ======================================================
-
 function dedupeSkills(skillGroups) {
   return skillGroups.map((group) => ({
     ...group,
@@ -144,20 +140,12 @@ function dedupeSkills(skillGroups) {
   }));
 }
 
-// ======================================================
-// Remove Duplicate Bullets
-// ======================================================
-
 function dedupeBullets(experienceItems) {
   return experienceItems.map((exp) => ({
     ...exp,
     bullets: [...new Set(exp.bullets)],
   }));
 }
-
-// ======================================================
-// Fill Latex Template
-// ======================================================
 
 function fillTemplate(templateCode, blocks) {
   return templateCode
@@ -174,10 +162,6 @@ function fillTemplate(templateCode, blocks) {
     .replace(/\{\{PROJECTS_ITEMS\}\}/g, blocks.PROJECTS_ITEMS)
     .replace(/\{\{CERTIFICATIONS\}\}/g, blocks.CERTIFICATIONS);
 }
-
-// ======================================================
-// Build Latex Blocks
-// ======================================================
 
 function buildLatexBlocks(data) {
   const EXPERIENCE_ITEMS = data.experienceItems
@@ -262,36 +246,48 @@ ${data.certifications
 }
 
 // ======================================================
-// PDF GENERATION
+// PDF GENERATION (UPDATED FOR CLOUD DEPLOYMENT)
 // ======================================================
 
 async function generatePdfFromHtml(htmlContent) {
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: true, // "new" is deprecated, true is the modern standard
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage", // CRITICAL: Fixes "Aw, Snap!" crashes on Docker/Render
+      "--disable-gpu",           // Unnecessary for PDF generation, saves memory
+      "--single-process",        // Run everything in a single process (saves memory)
+      "--no-zygote"              // Required if using --single-process
+    ],
   });
 
-  const page = await browser.newPage();
+  try {
+    const page = await browser.newPage();
 
-  await page.setContent(htmlContent, {
-    waitUntil: "networkidle0",
-  });
+    await page.setContent(htmlContent, {
+      waitUntil: "networkidle0",
+    });
 
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-    preferCSSPageSize: true,
-    margin: {
-      top: "12mm",
-      bottom: "12mm",
-      left: "10mm",
-      right: "10mm",
-    },
-  });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: {
+        top: "12mm",
+        bottom: "12mm",
+        left: "10mm",
+        right: "10mm",
+      },
+    });
 
-  await browser.close();
-
-  return pdfBuffer;
+    return pdfBuffer;
+  } finally {
+    // Always ensure the browser closes, even if page.pdf() throws an error!
+    if (browser) {
+      await browser.close();
+    }
+  }
 }
 
 // ======================================================
@@ -323,7 +319,6 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
-
       responseSchema: zodToJsonSchema(interviewReportSchema),
     },
   });
@@ -380,7 +375,6 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
-
       responseSchema: zodToJsonSchema(resumePdfSchema),
     },
   });
@@ -445,39 +439,22 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
-
       responseSchema: zodToJsonSchema(resumeLatexDataSchema),
     },
   });
 
   const data = JSON.parse(response.text);
 
-  // ======================================================
-  // DATA CLEANING
-  // ======================================================
-
   data.skillGroups = dedupeSkills(data.skillGroups);
-
-  data.experienceItems = dedupeBullets(
-    data.experienceItems
-  );
-
-  // ======================================================
-  // BUILD LATEX
-  // ======================================================
+  data.experienceItems = dedupeBullets(data.experienceItems);
 
   const blocks = buildLatexBlocks(data);
-
-  const latexCode = fillTemplate(
-    TEMPLATES[id].code,
-    blocks
-  );
+  const latexCode = fillTemplate(TEMPLATES[id].code, blocks);
 
   return {
     latexCode,
     templateName: TEMPLATES[id].name,
     templateId: id,
-
     atsAnalysis: data.atsAnalysis,
   };
 }
