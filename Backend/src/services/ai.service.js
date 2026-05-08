@@ -23,7 +23,7 @@ const interviewReportSchema = z.object({
       question: z.string(),
       intention: z.string(),
       answer: z.string(),
-    })
+    }),
   ),
 
   behavioralQuestions: z.array(
@@ -31,14 +31,14 @@ const interviewReportSchema = z.object({
       question: z.string(),
       intention: z.string(),
       answer: z.string(),
-    })
+    }),
   ),
 
   skillGaps: z.array(
     z.object({
       skill: z.string(),
       severity: z.enum(["low", "medium", "high"]),
-    })
+    }),
   ),
 
   preparationPlan: z.array(
@@ -46,7 +46,7 @@ const interviewReportSchema = z.object({
       day: z.number(),
       focus: z.string(),
       tasks: z.array(z.string()),
-    })
+    }),
   ),
 
   title: z.string(),
@@ -81,7 +81,7 @@ const resumeLatexDataSchema = z.object({
       startDate: z.string(),
       endDate: z.string(),
       bullets: z.array(z.string()),
-    })
+    }),
   ),
 
   educationItems: z.array(
@@ -90,14 +90,14 @@ const resumeLatexDataSchema = z.object({
       degree: z.string(),
       startDate: z.string(),
       endDate: z.string(),
-    })
+    }),
   ),
 
   skillGroups: z.array(
     z.object({
       category: z.string(),
       skills: z.array(z.string()),
-    })
+    }),
   ),
 
   projects: z.array(
@@ -105,7 +105,7 @@ const resumeLatexDataSchema = z.object({
       name: z.string(),
       techStack: z.string(),
       description: z.string(),
-    })
+    }),
   ),
 
   certifications: z.array(z.string()),
@@ -133,6 +133,10 @@ function escapeLatex(str = "") {
     .replace(/\}/g, "\\}");
 }
 
+// ======================================================
+// Remove Duplicate Skills
+// ======================================================
+
 function dedupeSkills(skillGroups) {
   return skillGroups.map((group) => ({
     ...group,
@@ -140,12 +144,20 @@ function dedupeSkills(skillGroups) {
   }));
 }
 
+// ======================================================
+// Remove Duplicate Bullets
+// ======================================================
+
 function dedupeBullets(experienceItems) {
   return experienceItems.map((exp) => ({
     ...exp,
     bullets: [...new Set(exp.bullets)],
   }));
 }
+
+// ======================================================
+// Fill Latex Template
+// ======================================================
 
 function fillTemplate(templateCode, blocks) {
   return templateCode
@@ -162,6 +174,10 @@ function fillTemplate(templateCode, blocks) {
     .replace(/\{\{PROJECTS_ITEMS\}\}/g, blocks.PROJECTS_ITEMS)
     .replace(/\{\{CERTIFICATIONS\}\}/g, blocks.CERTIFICATIONS);
 }
+
+// ======================================================
+// Build Latex Blocks
+// ======================================================
 
 function buildLatexBlocks(data) {
   const EXPERIENCE_ITEMS = data.experienceItems
@@ -192,7 +208,7 @@ ${bullets}
 {${escapeLatex(edu.degree)}}
 {${escapeLatex(edu.startDate)}}
 {${escapeLatex(edu.endDate)}}
-`
+`,
     )
     .join("\n");
 
@@ -201,7 +217,7 @@ ${bullets}
       (g) =>
         `\\textbf{${escapeLatex(g.category)}:} ${g.skills
           .map(escapeLatex)
-          .join(", ")}`
+          .join(", ")}`,
     )
     .join(" \\\\\n");
 
@@ -212,7 +228,7 @@ ${bullets}
 {${escapeLatex(p.name)}}
 {${escapeLatex(p.techStack)}}
 {${escapeLatex(p.description)}}
-`
+`,
     )
     .join("\n");
 
@@ -222,9 +238,7 @@ ${bullets}
 \\sideSection{Certifications}
 
 \\begin{itemize}[leftmargin=*,nosep]
-${data.certifications
-  .map((c) => `\\item ${escapeLatex(c)}`)
-  .join("\n")}
+${data.certifications.map((c) => `\\item ${escapeLatex(c)}`).join("\n")}
 \\end{itemize}
 `
       : "";
@@ -246,20 +260,25 @@ ${data.certifications
 }
 
 // ======================================================
-// PDF GENERATION (UPDATED FOR CLOUD DEPLOYMENT)
+// PDF GENERATION
 // ======================================================
 
 async function generatePdfFromHtml(htmlContent) {
   const browser = await puppeteer.launch({
-    headless: true, // "new" is deprecated, true is the modern standard
+    headless: true,
+
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage", // CRITICAL: Fixes "Aw, Snap!" crashes on Docker/Render
-      "--disable-gpu",           // Unnecessary for PDF generation, saves memory
-      "--single-process",        // Run everything in a single process (saves memory)
-      "--no-zygote"              // Required if using --single-process
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process",
     ],
+
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
   });
 
   try {
@@ -273,6 +292,7 @@ async function generatePdfFromHtml(htmlContent) {
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
+
       margin: {
         top: "12mm",
         bottom: "12mm",
@@ -283,10 +303,7 @@ async function generatePdfFromHtml(htmlContent) {
 
     return pdfBuffer;
   } finally {
-    // Always ensure the browser closes, even if page.pdf() throws an error!
-    if (browser) {
-      await browser.close();
-    }
+    await browser.close();
   }
 }
 
@@ -319,6 +336,7 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
+
       responseSchema: zodToJsonSchema(interviewReportSchema),
     },
   });
@@ -330,11 +348,7 @@ ${jobDescription}
 // QUICK PDF EXPORT
 // ======================================================
 
-async function generateResumePdf({
-  resume,
-  selfDescription,
-  jobDescription,
-}) {
+async function generateResumePdf({ resume, selfDescription, jobDescription }) {
   const resumePdfSchema = z.object({
     html: z.string(),
   });
@@ -375,6 +389,7 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
+
       responseSchema: zodToJsonSchema(resumePdfSchema),
     },
   });
@@ -439,22 +454,34 @@ ${jobDescription}
 
     config: {
       responseMimeType: "application/json",
+
       responseSchema: zodToJsonSchema(resumeLatexDataSchema),
     },
   });
 
   const data = JSON.parse(response.text);
 
+  // ======================================================
+  // DATA CLEANING
+  // ======================================================
+
   data.skillGroups = dedupeSkills(data.skillGroups);
+
   data.experienceItems = dedupeBullets(data.experienceItems);
 
+  // ======================================================
+  // BUILD LATEX
+  // ======================================================
+
   const blocks = buildLatexBlocks(data);
+
   const latexCode = fillTemplate(TEMPLATES[id].code, blocks);
 
   return {
     latexCode,
     templateName: TEMPLATES[id].name,
     templateId: id,
+
     atsAnalysis: data.atsAnalysis,
   };
 }
